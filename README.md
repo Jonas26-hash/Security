@@ -496,51 +496,6 @@ server:
 
 ---
 
-## 🎯 Checklist Antes de Entregar
-
-- [ ] Setup ejecutado exitosamente
-- [ ] Caso 1: Login correcto ✓
-- [ ] Caso 2: Password incorrecta ✓
-- [ ] Caso 3: Token expirado ✓
-- [ ] Caso 4: Sin permisos ✓
-- [ ] Caso 5: Rate limiting ✓
-- [ ] mvn test (todas las pruebas pasan)
-- [ ] mvn verify (integración pasa)
-- [ ] Swagger accesible
-- [ ] PostgreSQL con datos
-- [ ] Redis funcionando
-- [ ] Auditoría registrando eventos
-- [ ] JWT válido y decodificable
-- [ ] Todos los microservicios activos
-
----
-
-## 🚀 Próximos Pasos (Opcional)
-
-1. **CORS:** Configurar solo orígenes permitidos
-2. **CSRF:** Habilitar protección CSRF para formularios
-3. **Headers Seguros:** Implementar CSP, X-Frame-Options, etc.
-4. **HSTS:** Forzar HTTPS
-5. **SQL Injection:** Usar JPA parameterizado (ya implementado)
-6. **XSS:** Validar y sanitizar entrada en frontend
-
----
-
-## 📞 Soporte
-
-Si algo falla:
-
-1. **Ver logs:** `docker-compose logs -f`
-2. **Restart servicios:** `docker-compose restart`
-3. **Rebuild:** `docker-compose up -d --build`
-4. **Clean:** `docker-compose down -v && docker-compose up -d`
-
----
-
-**¡A probar todo! 🧪**
-
----
-
 **Versión:** 1.0
 **Fecha:** Junio 2026
 **Autor:** Sistema de Transporte - Equipo de Seguridad
