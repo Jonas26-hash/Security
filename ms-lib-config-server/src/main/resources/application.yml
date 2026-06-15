@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: ms-lib-config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/your-org/transporte-config
+          default-label: main
+          clone-on-start: true
+          timeout: 10
+        bootstrap: true
+  security:
+    user:
+      name: config
+      password: config123
+
+server:
+  port: 8888
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://registry-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.config: DEBUG

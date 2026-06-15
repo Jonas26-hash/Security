@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  # Base de datos compartida
+  postgres:
+    image: postgres:15-alpine
+    container_name: transporte-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_MULTIPLE_DATABASES: cliente_db,reserva_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
+    networks:
+      - transporte-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis para rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: transporte-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - transporte-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Eureka Service Registry
+  registry-server:
+    build:
+      context: ./ms-lib-registry-server
+      dockerfile: Dockerfile
+    container_name: registry-server
+    environment:
+      EUREKA_PASSWORD: eureka123
+    ports:
+      - "8761:8761"
+    networks:
+      - transporte-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://eureka:eureka123@localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # Config Server
+  config-server:
+    build:
+      context: ./ms-lib-config-server
+      dockerfile: Dockerfile
+    container_name: config-server
+    environment:
+      CONFIG_PASSWORD: config123
+      EUREKA_PASSWORD: eureka123
+    ports:
+      - "8888:8888"
+    depends_on:
+      registry-server:
+        condition: service_healthy
+    networks:
+      - transporte-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://config:config123@localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./ms-lib-api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      JWT_SECRET: your-super-secret-key-that-is-at-least-256-bits-long-for-hs256-to-work-properly-12345
+      IP_WHITELIST: 192.168.1.10,192.168.1.11,127.0.0.1,localhost
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - registry-server
+      - config-server
+      - redis
+    networks:
+      - transporte-network
+
+  # ms-cliente (con autenticación integrada)
+  ms-cliente:
+    build:
+      context: ./ms-cliente
+      dockerfile: Dockerfile
+    container_name: ms-cliente
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/cliente_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JWT_SECRET: your-super-secret-key-that-is-at-least-256-bits-long-for-hs256-to-work-properly-12345
+      JWT_EXPIRATION: 3600000
+      EUREKA_PASSWORD: eureka123
+      CONFIG_PASSWORD: config123
+    ports:
+      - "8082:8082"
+    depends_on:
+      - registry-server
+      - config-server
+      - postgres
+    networks:
+      - transporte-network
+
+  # ms-reserva
+  ms-reserva:
+    build:
+      context: ./ms-reserva
+      dockerfile: Dockerfile
+    container_name: ms-reserva
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/reserva_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_PASSWORD: eureka123
+      CONFIG_PASSWORD: config123
+    ports:
+      - "8083:8083"
+    depends_on:
+      - registry-server
+      - config-server
+      - postgres
+    networks:
+      - transporte-network
+
+networks:
+  transporte-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

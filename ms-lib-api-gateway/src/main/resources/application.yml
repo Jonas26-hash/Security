@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: ms-lib-api-gateway
+  cloud:
+    gateway:
+      routes:
+        # Auth routes -> ms-cliente (donde está la autenticación)
+        - id: auth-service
+          uri: lb://ms-cliente
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=0
+
+        # Clientes routes -> ms-cliente
+        - id: cliente-service
+          uri: lb://ms-cliente
+          predicates:
+            - Path=/cliente/**
+          filters:
+            - StripPrefix=0
+
+        # Reservas routes -> ms-reserva
+        - id: reserva-service
+          uri: lb://ms-reserva
+          predicates:
+            - Path=/reserva/**
+          filters:
+            - StripPrefix=0
+
+  redis:
+    host: redis
+    port: 6379
+    timeout: 60000ms
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+jwt:
+  secret: your-super-secret-key-that-is-at-least-256-bits-long-for-hs256-to-work-properly-12345
+
+ip:
+  whitelist: 192.168.1.10,192.168.1.11,127.0.0.1,localhost
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka:eureka123@registry-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+logging:
+  level:
+    root: INFO
+    com.transporte.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
