@@ -1,0 +1,12 @@
+# Configuración centralizada - Sistema de Transporte
+# Este archivo es un placeholder. Las configuraciones reales están en application.yml de cada microservicio
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+logging:
+  level:
+    root: INFO

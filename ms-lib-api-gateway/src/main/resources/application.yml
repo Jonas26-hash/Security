@@ -4,29 +4,29 @@ spring:
   cloud:
     gateway:
       routes:
-        # Auth routes -> ms-cliente (donde está la autenticación)
-        - id: auth-service
-          uri: lb://ms-cliente
+        - id: cliente-auth
+          uri: http://ms-cliente:8082
           predicates:
             - Path=/auth/**
           filters:
             - StripPrefix=0
 
-        # Clientes routes -> ms-cliente
         - id: cliente-service
-          uri: lb://ms-cliente
+          uri: http://ms-cliente:8082
           predicates:
             - Path=/cliente/**
           filters:
             - StripPrefix=0
 
-        # Reservas routes -> ms-reserva
         - id: reserva-service
-          uri: lb://ms-reserva
+          uri: http://ms-reserva:8083
           predicates:
             - Path=/reserva/**
           filters:
             - StripPrefix=0
+
+    discovery:
+      enabled: false
 
   redis:
     host: redis
@@ -50,9 +50,10 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka:eureka123@registry-server:8761/eureka/
+      defaultZone: http://registry-server:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+    enabled: true
 
 logging:
   level:

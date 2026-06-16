@@ -21,7 +21,7 @@ INSERT INTO permisos (name, description) VALUES
 ('VER_PROGRAMACION', 'Ver programación'),
 ('CREAR_BUS', 'Crear buses'),
 ('EDITAR_BUS', 'Editar buses'),
-('),
+('ELIMINAR_BUS', 'Eliminar buses'),
 ('VER_BUS', 'Ver buses'),
 ('CREAR_ASIENTO', 'Crear asientos'),
 ('EDITAR_ASIENTO', 'Editar asientos'),

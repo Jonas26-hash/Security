@@ -1,11 +1,23 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM maven:3.9-eclipse-temurin-17-alpine AS builder
+
+WORKDIR /build
+
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-COPY target/ms-cliente-1.0.0.jar app.jar
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-ENV JAVA_OPTS="-Xmx512m -Xms256m"
+COPY --from=builder /build/target/ms-cliente-1.0.0.jar app.jar
 
 EXPOSE 8082
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+USER appuser
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
